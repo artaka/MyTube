@@ -1,0 +1,407 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyTube Тестовая Панель</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h1, h2 { color: #cc0000; }
+        .section {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .section:last-child { border: none; }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"], textarea, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #cc0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background-color: #b30000; }
+        button.google-btn {
+            background-color: #4285F4;
+        }
+        button.google-btn:hover { background-color: #357ae8; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .pending { background-color: #ffeeba; color: #856404; }
+        .processing { background-color: #bee5eb; color: #0c5460; }
+        .ready { background-color: #c3e6cb; color: #155724; }
+        .failed { background-color: #f5c6cb; color: #721c24; }
+        #log {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        video {
+            width: 100%;
+            margin-top: 15px;
+            border-radius: 4px;
+            background: black;
+        }
+    </style>
+    <!-- Подключаем hls.js для стриминга .m3u8 плейлистов в любом браузере -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Панель управления MyTube MVP</h1>
+
+    <!-- 1. Авторизация -->
+    <div class="section">
+        <h2>1. Авторизация пользователя</h2>
+        <div id="auth-status" style="margin-bottom: 15px; font-weight: bold; color: #555;">
+            Статус: Вы не авторизованы
+        </div>
+        <div class="form-group">
+            <button class="google-btn" onclick="loginWithGoogle()">Войти через Google</button>
+        </div>
+        <hr>
+        <div style="font-size: 14px; color: #666; margin-bottom: 10px;">Или классическая форма:</div>
+        <div class="form-group">
+            <input type="text" id="login-username" placeholder="Username (или Email для регистрации)">
+        </div>
+        <div class="form-group">
+            <input type="password" id="login-password" placeholder="Пароль">
+        </div>
+        <button onclick="loginClassic()">Войти (Пароль)</button>
+        <button style="background-color: #6c757d;" onclick="registerClassic()">Создать аккаунт</button>
+    </div>
+
+    <!-- 2. Загрузка видео -->
+    <div class="section">
+        <h2>2. Загрузка нового видеоролика</h2>
+        <form id="upload-form" onsubmit="handleUpload(event)">
+            <div class="form-group">
+                <label for="video-title">Название видео</label>
+                <input type="text" id="video-title" required placeholder="Например: Как сварить идеальную пасту">
+            </div>
+            <div class="form-group">
+                <label for="video-desc">Описание</label>
+                <textarea id="video-desc" rows="3" placeholder="Добавьте описание ролика..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="video-file">Выбрать файл (.mp4)</label>
+                <input type="file" id="video-file" accept="video/mp4" required>
+            </div>
+            <button type="submit" id="upload-submit-btn" disabled>Загрузить ролик</button>
+            <span id="upload-message" style="margin-left: 10px; font-weight: bold;"></span>
+        </form>
+    </div>
+
+    <!-- 3. Мониторинг и просмотр -->
+    <div class="section">
+        <h2>3. Просмотр видео и статуса обработки</h2>
+        <div class="form-group">
+            <label for="search-video-id">Введите UUID видеозаписи</label>
+            <input type="text" id="search-video-id" placeholder="c1a9f8b4-5555-4444-8888-9999abcdef12">
+        </div>
+        <button onclick="checkVideoStatus()">Проверить статус & Открыть</button>
+
+        <div id="video-info" style="display: none; margin-top: 20px;">
+            <h3>Карточка видео: <span id="res-title"></span></h3>
+            <p id="res-desc" style="color: #666; font-style: italic;"></p>
+            <div style="margin-bottom: 10px;">
+                Статус конвертации: <span id="res-status" class="status-badge"></span>
+            </div>
+            <div style="font-size: 14px; color: #444; margin-bottom: 15px;">
+                👁 Просмотры: <span id="res-views">0</span> | 👍 Лайки: <span id="res-likes">0</span> | 💬 Комментарии: <span id="res-comments">0</span> | ⏱ Длительность: <span id="res-duration">0</span> сек.
+            </div>
+            <div id="player-container">
+                <!-- Сюда инжектируется нативный плеер -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Системный Лог -->
+    <div class="section">
+        <h2>Консоль Ответов API</h2>
+        <div id="log">Панель запущена. Ожидание действий...</div>
+    </div>
+</div>
+
+<script>
+    const AUTH_SERVICE = window.location.origin;  // Будет http://localhost
+    const VIDEO_SERVICE = window.location.origin;
+    let token = localStorage.getItem("access_token") || null;
+
+    // Инициализация при загрузке страницы
+    window.onload = async function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+
+        // Микросервисный паттерн: Перехватываем code и state от Google
+        if (code && state) {
+            log("Обнаружен OAuth-код от Google! Обмениваем на JWT токен...");
+            try {
+                // ИСПРАВЛЕНО: Роут изменен с /auth/google/callback на /auth/callback согласно OpenAPI схеме
+                const response = await fetch(`${AUTH_SERVICE}/auth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`);
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    saveToken(data.access_token);
+                    log("Авторизация через Google успешна! Токен сохранен.");
+                } else {
+                    log("Сервис авторизации отклонил код от Google", data);
+                }
+            } catch (err) {
+                log("Ошибка связи с auth_service при обмене кода: " + err.message);
+            }
+            // Очищаем технические query-параметры Google из адресной строки
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        updateAuthUI();
+    };
+
+    function log(message, data = null) {
+        const logDiv = document.getElementById("log");
+        let txt = `[${new Date().toLocaleTimeString()}] ${message}`;
+        if (data) txt += `\n${JSON.stringify(data, null, 2)}`;
+        logDiv.innerText = txt + "\n\n" + logDiv.innerText;
+    }
+
+    function saveToken(newToken) {
+        token = newToken;
+        localStorage.setItem("access_token", newToken);
+        updateAuthUI();
+    }
+
+    function updateAuthUI() {
+        const statusDiv = document.getElementById("auth-status");
+        const uploadBtn = document.getElementById("upload-submit-btn");
+        if (token) {
+            statusDiv.innerHTML = `Статус: <span style="color: green;">Авторизован (JWT сохранен)</span>`;
+            uploadBtn.disabled = false;
+        } else {
+            statusDiv.innerHTML = `Статус: <span style="color: red;">Вы не авторизованы. Загрузка заблокирована.</span>`;
+            uploadBtn.disabled = true;
+        }
+    }
+
+    // --- ЛОГИКА АВТОРИЗАЦИИ В AUTH_SERVICE (8001) ---
+
+    async function loginWithGoogle() {
+        log("Запрос ссылки авторизации у Google...");
+        try {
+            const currentFrontendUrl = window.location.origin + window.location.pathname;
+            const response = await fetch(`${AUTH_SERVICE}/auth/authorize?redirect_uri=${encodeURIComponent(currentFrontendUrl)}`);
+            const data = await response.json();
+            if (data.authorization_url) {
+                log("Перенаправление на Google OAuth...");
+                window.location.href = data.authorization_url;
+            }
+        } catch (err) {
+            log("Ошибка получения ссылки Google Auth", err);
+        }
+    }
+
+    async function loginClassic() {
+        const username = document.getElementById("login-username").value;
+        const password = document.getElementById("login-password").value;
+
+        log("Выполняется вход...");
+
+        const formData = new URLSearchParams();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        try {
+            const response = await fetch(`${AUTH_SERVICE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                log("Успешный вход!", data);
+                saveToken(data.access_token);
+            } else {
+                log("Ошибка входа", data);
+            }
+        } catch (err) {
+            log("Сбой сети при входе", err);
+        }
+    }
+
+    async function registerClassic() {
+        const email = document.getElementById("login-username").value;
+        const password = document.getElementById("login-password").value;
+
+        log("Регистрация нового пользователя...");
+        try {
+            const response = await fetch(`${AUTH_SERVICE}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email.includes('@') ? email : `${email}@mytube.local`,
+                    username: email.split('@')[0],
+                    password: password
+                })
+            });
+            const data = await response.json();
+            log("Результат регистрации", data);
+        } catch (err) {
+            log("Сбой сети при регистрации", err);
+        }
+    }
+
+    // --- ЛОГИКА ЗАГРУЗКИ И ПЛЕЕРА В VIDEO_SERVICE (8002) ---
+
+async function handleUpload(event) {
+    event.preventDefault();
+    if (!token) return;
+
+    const title = document.getElementById("video-title").value;
+    const description = document.getElementById("video-desc").value;
+    const fileInput = document.getElementById("video-file");
+    const msgSpan = document.getElementById("upload-message");
+
+    log("Шаг 1: Инициализация отправки данных формы...");
+    msgSpan.innerText = "Отправка...";
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+    formData.append("title", title);
+
+    if (description) {
+        formData.append("description", description);
+    }
+
+    try {
+        const response = await fetch(`${VIDEO_SERVICE}/video/upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        const data = await response.json();
+
+        if (response.status === 201) {
+            log("Успешно! Видео добавлено в базу данных и отправлено в Celery.", data);
+            msgSpan.innerHTML = `Успех! ID: <span style="color:green">${data.video_id}</span>`;
+            document.getElementById("search-video-id").value = data.video_id;
+        } else {
+            log("Ошибка контракта / валидации полей формы", data);
+            msgSpan.innerText = "Ошибка загрузки.";
+        }
+    } catch (err) {
+        log("Критический сбой сети при отправке формы: " + err.message);
+        msgSpan.innerText = "Сбой сети.";
+    }
+}
+
+    async function checkVideoStatus() {
+        const videoId = document.getElementById("search-video-id").value.trim();
+        if (!videoId) return alert("Введите UUID видео!");
+
+        log(`Запрос данных карточки видео ${videoId}...`);
+
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        try {
+            const response = await fetch(`${VIDEO_SERVICE}/video/${videoId}`, { headers: headers });
+            const data = await response.json();
+
+            if (!response.ok) {
+                log("Видео не найдено или ошибка схемы", data);
+                document.getElementById("video-info").style.display = "none";
+                return;
+            }
+
+            log("Карточка успешно получена из PostgreSQL", data);
+
+            document.getElementById("video-info").style.display = "block";
+            document.getElementById("res-title").innerText = data.title;
+            document.getElementById("res-desc").innerText = data.description || "Без описания";
+            document.getElementById("res-views").innerText = data.views_count;
+            document.getElementById("res-likes").innerText = data.likes_count;
+
+            // Названия полей синхронизированы с VideoResponse
+            document.getElementById("res-comments").innerText = data.comment_count;
+            document.getElementById("res-duration").innerText = data.duration_seconds;
+
+            const statusBadge = document.getElementById("res-status");
+            statusBadge.className = `status-badge ${data.status}`;
+            statusBadge.innerText = data.status.toUpperCase();
+
+            const playerContainer = document.getElementById("player-container");
+            playerContainer.innerHTML = "";
+
+            if (data.status === "ready" && data.master_video_url) {
+                const videoElement = document.createElement("video");
+                videoElement.controls = true;
+                playerContainer.appendChild(videoElement);
+
+                if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                    videoElement.src = data.master_video_url;
+                }
+                else if (Hls.isSupported()) {
+                    const hls = new Hls();
+                    hls.loadSource(data.master_video_url);
+                    hls.attachMedia(videoElement);
+                    log("HLS поток успешно примонтирован к плееру.");
+                }
+            } else {
+                playerContainer.innerHTML = `<div style="padding:20px; background:#eee; text-align:center; border-radius:4px;">
+                    📺 Видео будет доступно для воспроизведения после завершения HLS нарезки в Celery (Статус: READY)
+                </div>`;
+            }
+
+        } catch (err) {
+            log("Ошибка при получении статуса ролика", err);
+        }
+    }
+</script>
+</body>
+</html>

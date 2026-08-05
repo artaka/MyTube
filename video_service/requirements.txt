@@ -1,0 +1,11 @@
+﻿fastapi==0.110.0
+uvicorn==0.28.0
+celery==5.3.6
+redis==5.0.2
+boto3==1.34.64
+python-multipart==0.0.9
+pydantic_settings==2.14.2
+SQLAlchemy==2.0.51
+asyncpg
+psycopg2-binary
+PyJWT
