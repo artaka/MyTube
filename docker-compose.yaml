@@ -1,4 +1,4 @@
-﻿services:
+services:
   postgres_db:
     image: postgres:15-alpine
     container_name: mytube_postgres
@@ -67,8 +67,8 @@
     environment:
       DB_URL: "postgresql+asyncpg://postgres_user:postgres_password@postgres_db:5432/mytube_db"
       SECRET_KEY: "111"
-      GOOGLE_CLIENT_ID: "111"
-      GOOGLE_CLIENT_SECRET: "111"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
     depends_on:
       postgres_db:
         condition: service_healthy
@@ -167,6 +167,60 @@
     depends_on:
       - auth_service
       - video_service
+      - channels_service
+    networks:
+      - mytube_network
+
+  # --- База данных каналов ---
+  channels_db:
+    image: postgres:15-alpine
+    container_name: channels_postgres
+    environment:
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: mytube_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_channels_data:/var/lib/postgresql/data
+    networks:
+      - mytube_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres_user -d mytube_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- Микросервис каналов ---
+  channels_service:
+    build:
+      context: ./channels_service
+      dockerfile: Dockerfile
+    container_name: mytube_channels
+    ports:
+      - "8003:8000"
+    volumes:
+      - ./channels_service:/app
+    environment:
+      DB_URL: "postgresql+asyncpg://postgres_user:postgres_password@channels_db:5432/mytube_db"
+      SECRET_KEY: "111"
+      PYTHONPATH: "/app"
+      AUTH_SERVICE_URL: "http://auth_service:8000"
+      MINIO_ENDPOINT: "minio:9000"
+      MINIO_EXTERNAL_ENDPOINT: "http://localhost:9000"
+      MINIO_ACCESS_KEY: "minioadmin"
+      MINIO_SECRET_KEY: "minioadminpassword"
+      BUCKET_NAME: "photos"
+      REGION_NAME: "us-east-1"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672//"
+    depends_on:
+      channels_db:
+        condition: service_healthy
+      auth_service:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     networks:
       - mytube_network
 
@@ -174,6 +228,7 @@ volumes:
   postgres_data:
   minio_data:
   postgres_video_data:
+  postgres_channels_data:
 
 networks:
   mytube_network:

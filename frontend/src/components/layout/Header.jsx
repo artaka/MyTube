@@ -1,14 +1,26 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useChannel } from '../../context/ChannelContext';
 import { SearchIcon, UploadIcon, UserIcon, MenuIcon } from '../common/Icons';
+import Avatar from '../common/Avatar';
 
 export default function Header({ onLogin, onMenuToggle }) {
   const { token, user, logout } = useAuth();
+  const { myChannel, getPhotoUrl } = useChannel();
   const [query, setQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!myChannel?.id) return;
+    getPhotoUrl(myChannel.id, 'avatar_small').then((url) => {
+      if (url) setAvatarUrl(url);
+    });
+  }, [myChannel?.id, getPhotoUrl]);
+
 
   useEffect(() => {
     if (!showUserMenu) return;
@@ -24,7 +36,7 @@ export default function Header({ onLogin, onMenuToggle }) {
   const handleSearch = (e) => {
     e.preventDefault();
     if (query.trim()) {
-      navigate(`/?q=${encodeURIComponent(query.trim())}`);
+      navigate(`/results?search_query=${encodeURIComponent(query.trim())}`);
     }
   };
 
@@ -32,6 +44,15 @@ export default function Header({ onLogin, onMenuToggle }) {
     logout();
     setShowUserMenu(false);
     navigate('/');
+  };
+
+  const handleMyChannelClick = () => {
+    if (myChannel?.handle) {
+      navigate(`/channel/${myChannel.handle}`);
+    } else {
+      navigate(`/channel/${user?.id}`);
+    }
+    setShowUserMenu(false);
   };
 
   return (
@@ -67,32 +88,49 @@ export default function Header({ onLogin, onMenuToggle }) {
       <div className="header__right">
         {token ? (
           <>
-            <button className="header__upload-btn" onClick={() => navigate('/upload')} title="Загрузить видео">
+            <button className="header__upload-btn" onClick={() => navigate('/upload')} title="Создать / Загрузить видео">
               <UploadIcon />
-              <span>Загрузить</span>
+              <span>Создать</span>
             </button>
             <div style={{ position: 'relative' }} ref={userMenuRef}>
               <button
                 className="header__avatar"
                 title={user?.username || 'Профиль'}
                 onClick={() => setShowUserMenu((v) => !v)}
+                style={{ overflow: 'hidden', padding: 0, border: 'none', background: 'transparent' }}
               >
-                {user?.username?.[0] || 'U'}
+                <Avatar
+                  src={avatarUrl}
+                  name={myChannel?.name || user?.username}
+                  userId={user?.id}
+                  size={32}
+                />
               </button>
               {showUserMenu && (
                 <div className="user-menu">
                   <div className="user-menu__header">
-                    <div className="user-menu__avatar">
-                      {user?.username?.[0] || 'U'}
-                    </div>
+                    <Avatar
+                      src={avatarUrl}
+                      name={myChannel?.name || user?.username}
+                      userId={user?.id}
+                      size={40}
+                      className="user-menu__avatar"
+                    />
                     <div>
-                      <div className="user-menu__name">{user?.username}</div>
-                      <div className="user-menu__email">{user?.email || ''}</div>
+                      <div className="user-menu__name">{myChannel?.name || user?.username}</div>
+                      <div className="user-menu__email">{myChannel?.handle || user?.email || ''}</div>
                     </div>
                   </div>
+
                   <div className="user-menu__divider" />
+                  <button className="user-menu__item" onClick={handleMyChannelClick}>
+                    Мой канал
+                  </button>
                   <button className="user-menu__item" onClick={() => { navigate('/upload'); setShowUserMenu(false); }}>
-                    Ваши видео
+                    Студия / Загрузка
+                  </button>
+                  <button className="user-menu__item" onClick={() => { navigate('/settings'); setShowUserMenu(false); }}>
+                    Настройки аккаунта
                   </button>
                   <div className="user-menu__divider" />
                   <button className="user-menu__item user-menu__item--danger" onClick={handleLogout}>

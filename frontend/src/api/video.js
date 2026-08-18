@@ -1,19 +1,4 @@
-const API_BASE = '';
-
-function authHeaders(token) {
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-async function request(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, options);
-  if (!res.ok) {
-    const data = await res.json().catch(() => null);
-    const message = data?.detail || `Ошибка ${res.status}`;
-    throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
-  }
-  if (res.status === 204) return null;
-  return res.json();
-}
+import { request, authHeaders } from './client';
 
 export async function getFeed(page = 1, size = 20) {
   return request(`/video/feed?page=${page}&size=${size}`);
@@ -92,4 +77,8 @@ export async function setTimecode(videoId, timecodeSec, token) {
     method: 'POST',
     headers: authHeaders(token),
   });
+}
+
+export async function getUserVideos(userId, page = 0, size = 100) {
+  return request(`/profile/${userId}/videos?page=${page}&size=${size}`);
 }

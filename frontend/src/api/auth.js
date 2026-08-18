@@ -1,15 +1,4 @@
-const API_BASE = '';
-
-async function request(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, options);
-  if (!res.ok) {
-    const data = await res.json().catch(() => null);
-    const message = data?.detail || `Ошибка ${res.status}`;
-    throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
-  }
-  if (res.status === 204) return null;
-  return res.json();
-}
+import { request, authHeaders } from './client';
 
 export async function login(username, password) {
   const body = new URLSearchParams();
@@ -17,7 +6,10 @@ export async function login(username, password) {
   body.append('password', password);
   return request('/auth/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { 
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: null // Skip auth token for login
+    },
     body,
   });
 }
@@ -25,7 +17,10 @@ export async function login(username, password) {
 export async function register(email, username, password) {
   return request('/auth/register', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: null // Skip auth token for register
+    },
     body: JSON.stringify({ email, username, password }),
   });
 }
@@ -37,10 +32,6 @@ export function decodeToken(token) {
   } catch {
     return null;
   }
-}
-
-function authHeaders(token) {
-  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 export async function logout(token) {
@@ -70,15 +61,42 @@ export async function patchCurrentUser(token, data) {
 export async function refreshToken(refreshTokenValue) {
   return request('/auth/auth/refresh', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: null // Skip access token header
+    },
     body: JSON.stringify({ refresh_token: refreshTokenValue }),
   });
 }
 
+export async function getRefreshToken(token) {
+  return request('/auth/auth/refresh/get', {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+}
+
 export async function getGoogleAuthUrl() {
-  return request('/auth/authorize');
+  return request('/auth/authorize', {
+    headers: { Authorization: null }
+  });
 }
 
 export async function handleGoogleCallback(code, state) {
-  return request(`/auth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`);
+  return request(`/auth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`, {
+    headers: { Authorization: null }
+  });
 }
+
+export async function getUserById(userId) {
+  return request(`/users/${userId}`);
+}
+
+export async function deleteUser(token, userId) {
+  return request(`/users/${userId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+}
+
+

@@ -1324,3 +1324,26 @@ ul, ol {
     max-width: none;
   }
 }
+
+/* ===== Custom YouTube UI Enhancements ===== */
+.yt-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.search-result-card:hover {
+  background: var(--yt-bg-hover);
+}
+
+.watch-page--theater {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.watch-page--theater .watch-page__main {
+  width: 100% !important;
+}
+
+.watch-page--theater .video-player {
+  max-height: 75vh !important;
+}
+

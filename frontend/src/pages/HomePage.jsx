@@ -1,13 +1,25 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useFeed } from '../hooks/useFeed';
 import VideoGrid from '../components/video/VideoGrid';
 import { Spinner } from '../components/common/Spinner';
 import { EmptyState } from '../components/common/EmptyState';
 
+const CATEGORIES = [
+  'Все',
+  'Новые',
+  'Популярные',
+  'Короткие',
+  'Длинные',
+  'Музыка',
+  'Игры',
+  'Новости',
+  'Обучение',
+  'Фильмы',
+];
+
 export default function HomePage() {
   const { videos, loading, error, page, totalPages, loadMore } = useFeed();
-  const [searchParams] = useSearchParams();
+  const [activeCategory, setActiveCategory] = useState('Все');
   const sentinelRef = useRef(null);
 
   const isAtEnd = page >= totalPages;
@@ -30,27 +42,43 @@ export default function HomePage() {
     return () => observer.disconnect();
   }, [handleObserver]);
 
-  const query = searchParams.get('q');
+  const filteredVideos = useMemo(() => {
+    if (activeCategory === 'Все') return videos;
+    if (activeCategory === 'Новые') {
+      return [...videos].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+    if (activeCategory === 'Популярные') {
+      return [...videos].sort((a, b) => (b.views_count || 0) - (a.views_count || 0));
+    }
+    if (activeCategory === 'Короткие') {
+      return videos.filter((v) => v.duration_seconds > 0 && v.duration_seconds <= 180);
+    }
+    if (activeCategory === 'Длинные') {
+      return videos.filter((v) => v.duration_seconds > 180);
+    }
+    // Keyword match
+    const keyword = activeCategory.toLowerCase();
+    return videos.filter(
+      (v) =>
+        (v.title || '').toLowerCase().includes(keyword) ||
+        (v.description || '').toLowerCase().includes(keyword)
+    );
+  }, [videos, activeCategory]);
 
   return (
     <div>
+      {/* Category Chips Bar */}
       <div className="chips">
-        <button className="chip chip--active">Все</button>
-        <button className="chip">Музыка</button>
-        <button className="chip">Игры</button>
-        <button className="chip">Новости</button>
-        <button className="chip">Наука</button>
-        <button className="chip">Программирование</button>
-        <button className="chip">Фильмы</button>
-        <button className="chip">Кулинария</button>
-        <button className="chip">Спорт</button>
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            className={`chip ${activeCategory === cat ? 'chip--active' : ''}`}
+            onClick={() => setActiveCategory(cat)}
+          >
+            {cat}
+          </button>
+        ))}
       </div>
-
-      {query && (
-        <div style={{ padding: '16px 24px', fontSize: 16, color: 'var(--yt-text-secondary)' }}>
-          Результаты поиска: «{query}»
-        </div>
-      )}
 
       {error && (
         <div style={{ padding: 16, color: '#cc0000', textAlign: 'center' }}>
@@ -58,17 +86,17 @@ export default function HomePage() {
         </div>
       )}
 
-      <VideoGrid videos={videos} />
+      <VideoGrid videos={filteredVideos} />
 
       <div ref={sentinelRef} />
 
       {loading && <Spinner />}
 
-      {!loading && videos.length === 0 && (
-        <EmptyState icon="🎬" text="Пока нет видео" />
+      {!loading && filteredVideos.length === 0 && (
+        <EmptyState icon="🎬" text="Видео в данной категории не найдены" />
       )}
 
-      {isAtEnd && videos.length > 0 && (
+      {isAtEnd && filteredVideos.length > 0 && (
         <div style={{ textAlign: 'center', padding: 32, color: 'var(--yt-text-secondary)', fontSize: 14 }}>
           Вы посмотрели все видео
         </div>

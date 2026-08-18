@@ -55,10 +55,10 @@ async def get_video_by_id(
         repo: VideoRepository = Depends(get_video_repository),
 ):
     video = await repo.get_video_by_id(video_id)
-    if video.status != VideoStatusEnum.READY:
-        return video
     if not video:
         raise HTTPException(status_code=404, detail="Video not found")
+    if video.status != VideoStatusEnum.READY:
+        return video
     if not user_id:
         return video
     inc_res = await repo.increment_views_on_video(video_id=video_id, user_id=user_id, timecode=1)
@@ -180,8 +180,6 @@ async def get_video_timecode(
         repo: VideoRepository = Depends(get_video_repository)
 ):
     if not user_id:
-        return 0
+        return GetTimecodeResponse(timecode=0)
     timecode = await repo.get_video_view_timecode_seconds(video_id=video_id, user_id=user_id)
-    if not timecode:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="View not found")
-    return GetTimecodeResponse(timecode=timecode)
+    return GetTimecodeResponse(timecode=timecode or 0)

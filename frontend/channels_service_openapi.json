@@ -1,0 +1,660 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Channel Service",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/channels/{id_or_handle}": {
+      "get": {
+        "tags": [
+          "channels"
+        ],
+        "summary": "Get Channel By Id Or Handle",
+        "operationId": "get_channel_by_id_or_handle_channels__id_or_handle__get",
+        "parameters": [
+          {
+            "name": "id_or_handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "title": "Id Or Handle"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/channels/user/{user_id}": {
+      "get": {
+        "tags": [
+          "channels"
+        ],
+        "summary": "Get Channel By Owner Id",
+        "operationId": "get_channel_by_owner_id_channels_user__user_id__get",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/channels/": {
+      "post": {
+        "tags": [
+          "channels"
+        ],
+        "summary": "Create Channel",
+        "operationId": "create_channel_channels__post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "channels"
+        ],
+        "summary": "Update Channel",
+        "operationId": "update_channel_channels__patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChannelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/subscriptions/{channel_id}/toggle": {
+      "post": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Toggle Subscription",
+        "operationId": "toggle_subscription_subscriptions__channel_id__toggle_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "channel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Channel Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscriptions/my": {
+      "get": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Get My Subscriptions",
+        "operationId": "get_my_subscriptions_subscriptions_my_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChannelResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get My Subscriptions Subscriptions My Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/subscriptions/": {
+      "get": {
+        "tags": [
+          "subscriptions"
+        ],
+        "summary": "Get Subscriptions",
+        "operationId": "get_subscriptions_subscriptions__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChannelResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get Subscriptions Subscriptions  Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/storage/channels/photo": {
+      "put": {
+        "tags": [
+          "storage"
+        ],
+        "summary": "Upload And Process Image",
+        "operationId": "upload_and_process_image_storage_channels_photo_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "file_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "\"avatar\"/\"banner\" ONLY",
+              "default": "avatar",
+              "title": "File Type"
+            },
+            "description": "\"avatar\"/\"banner\" ONLY"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_and_process_image_storage_channels_photo_put"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/{channel_id}": {
+      "get": {
+        "tags": [
+          "storage"
+        ],
+        "summary": "Get Photo",
+        "operationId": "get_photo_storage__channel_id__get",
+        "parameters": [
+          {
+            "name": "channel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Channel Id"
+            }
+          },
+          {
+            "name": "photo_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "\"avatar\"/\"avatar_small\"/\"banner\"",
+              "default": "avatar",
+              "title": "Photo Type"
+            },
+            "description": "\"avatar\"/\"avatar_small\"/\"banner\""
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_upload_and_process_image_storage_channels_photo_put": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_and_process_image_storage_channels_photo_put"
+      },
+      "ChannelResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Channel ID"
+          },
+          "owner_id": {
+            "type": "integer",
+            "title": "Owner Id",
+            "description": "Channel owner ID"
+          },
+          "handle": {
+            "type": "string",
+            "title": "Handle",
+            "description": "Channel url handle"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Channel name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Channel description"
+          },
+          "videos_counter": {
+            "type": "integer",
+            "title": "Videos Counter",
+            "description": "Channel video number"
+          },
+          "subscribers_counter": {
+            "type": "integer",
+            "title": "Subscribers Counter",
+            "description": "Channel subscribers number"
+          },
+          "views_counter": {
+            "type": "integer",
+            "title": "Views Counter",
+            "description": "Channel views on all videos number"
+          },
+          "likes_counter": {
+            "type": "integer",
+            "title": "Likes Counter",
+            "description": "Channel total likes number",
+            "default": 0
+          },
+          "country": {
+            "type": "string",
+            "title": "Country",
+            "description": "Channel country"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Channel created time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Channel updated time"
+          },
+          "avatar_url": {
+            "type": "string",
+            "title": "Avatar Url",
+            "readOnly": true
+          },
+          "avatar_small_url": {
+            "type": "string",
+            "title": "Avatar Small Url",
+            "readOnly": true
+          },
+          "banner_url": {
+            "type": "string",
+            "title": "Banner Url",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "owner_id",
+          "handle",
+          "name",
+          "videos_counter",
+          "subscribers_counter",
+          "views_counter",
+          "country",
+          "created_at",
+          "updated_at",
+          "avatar_url",
+          "avatar_small_url",
+          "banner_url"
+        ],
+        "title": "ChannelResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "PhotoResponse": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "type"
+        ],
+        "title": "PhotoResponse"
+      },
+      "SubscriptionStatusResponse": {
+        "properties": {
+          "is_subscribed": {
+            "type": "boolean",
+            "title": "Is Subscribed",
+            "description": "Subscription status (True if subscribed, False if unsubscribed)"
+          },
+          "channel_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Channel Id",
+            "description": "Target Channel ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_subscribed",
+          "channel_id"
+        ],
+        "title": "SubscriptionStatusResponse"
+      },
+      "UpdateChannelRequest": {
+        "properties": {
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          }
+        },
+        "type": "object",
+        "title": "UpdateChannelRequest"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

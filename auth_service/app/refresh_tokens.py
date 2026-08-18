@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi_users import FastAPIUsers
+from fastapi_users import FastAPIUsers, exceptions
 from pydantic import BaseModel
 import jwt
 
@@ -9,8 +9,6 @@ from app.schemas.user import UserRead
 from app.utils.jwt import create_refresh_token
 from app.database.models import User
 
-# Импортируйте ваши зависимости из настроек fastapi-users
-# from your_app.users import get_user_manager, get_jwt_strategy
 
 fastapi_users = FastAPIUsers[User, int](
     get_users_manager,
@@ -35,7 +33,7 @@ class RefreshTokenResponse(BaseModel):
 @router.post("/refresh/get", response_model=RefreshTokenResponse)
 async def get_refresh_token(user: UserRead = Depends(current_user)):
     refresh_token = create_refresh_token(user.id)
-    return refresh_token
+    return RefreshTokenResponse(refresh_token=refresh_token)
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_access_token(
@@ -49,13 +47,20 @@ async def refresh_access_token(
         user_id = payload.get("sub")
         token_type = payload.get("type")
 
-        if token_type != "refresh":
+        if token_type != "refresh" or not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token type"
             )
 
-        user = await user_manager.get(user_id)
+        try:
+            user = await user_manager.get(user_id)
+        except (exceptions.UserNotExists, exceptions.InvalidID):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User inactive or deleted"
+            )
+
         if not user or not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -71,8 +76,8 @@ async def refresh_access_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token has expired. Please log in again."
         )
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token"
+            detail=f"Invalid refresh token. {e}"
         )

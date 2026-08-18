@@ -175,6 +175,11 @@ def convert_to_hls_s3(file_path: str, video_id: str):
             video.status = VideoStatusEnum.READY
             video.duration_seconds = duration
             db.commit()
+            try:
+                from app.helpers.rabbitmq_publisher import publish_channel_metric_event_sync
+                publish_channel_metric_event_sync(owner_id=video.author_id, metric="videos", delta=1)
+            except Exception as ev_err:
+                print(f"Failed to publish metric event: {ev_err}")
 
         print(f"Успешно загружено файлов в MinIO: {files_uploaded}")
         return {"status": "Success", "video_id": video_id}

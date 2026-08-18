@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDuration, formatViews, timeAgo } from '../common/format';
+import Avatar from '../common/Avatar';
+import { useChannel } from '../../context/ChannelContext';
 
 const COLORS = ['#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#009688', '#ff5722', '#795548'];
 
@@ -14,6 +17,30 @@ function getAvatarColor(id) {
 
 export default function VideoCard({ video }) {
   const navigate = useNavigate();
+  const { getChannelByAuthorId } = useChannel();
+  const [authorChannel, setAuthorChannel] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+
+  useEffect(() => {
+    if (!video?.author_id) return;
+    let mounted = true;
+
+    async function fetchAuthor() {
+      const ch = await getChannelByAuthorId(video.author_id);
+      if (mounted && ch) {
+        setAuthorChannel(ch);
+        if (ch.avatar_small_url || ch.avatar_url) {
+          setAvatarUrl(ch.avatar_small_url || ch.avatar_url);
+        }
+      }
+    }
+    fetchAuthor();
+
+    return () => {
+      mounted = false;
+    };
+  }, [video?.author_id, getChannelByAuthorId]);
+
 
   return (
     <div className="video-card" onClick={() => navigate(`/watch?v=${video.id}`)}>
@@ -46,15 +73,32 @@ export default function VideoCard({ video }) {
         )}
       </div>
       <div className="video-card__info">
-        <div
+        <Avatar
+          src={avatarUrl}
+          name={authorChannel?.name}
+          userId={video.author_id}
+          size={36}
           className="video-card__avatar"
-          style={{ background: getAvatarColor(video.author_id) }}
-        >
-          {String(video.author_id || 'U')[0]}
-        </div>
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/channel/${authorChannel?.handle || video.author_id}`);
+          }}
+        />
+
         <div className="video-card__meta">
-          <div className="video-card__title">{video.title}</div>
-          <div className="video-card__channel">Автор #{video.author_id}</div>
+          <div className="video-card__title" title={video.title}>{video.title}</div>
+          <div
+            className="video-card__channel"
+            style={{ cursor: 'pointer', textDecoration: 'none' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/channel/${authorChannel?.handle || video.author_id}`);
+            }}
+            onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
+            onMouseOut={(e) => e.target.style.textDecoration = 'none'}
+          >
+            {authorChannel?.name || `Автор #${video.author_id}`}
+          </div>
           <div className="video-card__stats">
             {formatViews(video.views_count)} • {timeAgo(video.created_at)}
           </div>

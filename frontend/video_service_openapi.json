@@ -1,1 +1,1063 @@
-{"openapi":"3.1.0","info":{"title":"Video Service","version":"0.1.0"},"paths":{"/video/upload":{"post":{"summary":"Upload Video","operationId":"upload_video_video_upload_post","requestBody":{"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/Body_upload_video_video_upload_post"}}},"required":true},"responses":{"201":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/VideoUploadInitResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}},"security":[{"HTTPBearer":[]}]}},"/video/storage/{video_id}":{"get":{"summary":"Get Video By Id","operationId":"get_video_by_id_video_storage__video_id__get","security":[{"HTTPBearer":[]}],"parameters":[{"name":"video_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Video Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/VideoResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"delete":{"summary":"Delete Video","operationId":"delete_video_video_storage__video_id__delete","security":[{"HTTPBearer":[]}],"parameters":[{"name":"video_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Video Id"}}],"responses":{"204":{"description":"Successful Response"},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/video/feed":{"get":{"summary":"Get Feed","operationId":"get_feed_video_feed_get","parameters":[{"name":"page","in":"query","required":false,"schema":{"type":"integer","minimum":1,"description":"Page number","default":1,"title":"Page"},"description":"Page number"},{"name":"size","in":"query","required":false,"schema":{"type":"integer","minimum":1,"description":"Page size","default":10,"title":"Size"},"description":"Page size"}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/VideoListResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/video/{video_id}":{"post":{"summary":"Set Video Activity","operationId":"set_video_activity_video__video_id__post","security":[{"HTTPBearer":[]}],"parameters":[{"name":"video_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Video Id"}},{"name":"activity_type","in":"query","required":true,"schema":{"$ref":"#/components/schemas/VideoActivityTypeEnum","description":"Activity type (\"like\", \"dislike\", \"share\")"},"description":"Activity type (\"like\", \"dislike\", \"share\")"}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/VideoResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/video/{video_id}/timecode":{"post":{"summary":"Set Video Timecode","operationId":"set_video_timecode_video__video_id__timecode_post","security":[{"HTTPBearer":[]}],"parameters":[{"name":"video_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Video Id"}},{"name":"timecode_sec","in":"query","required":false,"schema":{"type":"integer","minimum":1,"description":"Timecode seconds","default":1,"title":"Timecode Sec"},"description":"Timecode seconds"}],"responses":{"202":{"description":"Successful Response","content":{"application/json":{"schema":{}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"get":{"summary":"Get Video Timecode","operationId":"get_video_timecode_video__video_id__timecode_get","security":[{"HTTPBearer":[]}],"parameters":[{"name":"video_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Video Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/GetTimecodeResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/comments/{comment_id}":{"get":{"summary":"Get Comment By Id","operationId":"get_comment_by_id_comments__comment_id__get","security":[{"HTTPBearer":[]}],"parameters":[{"name":"comment_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Comment Id"}}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CommentResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"post":{"summary":"Set Comment Activity","operationId":"set_comment_activity_comments__comment_id__post","security":[{"HTTPBearer":[]}],"parameters":[{"name":"comment_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Comment Id"}},{"name":"activity","in":"query","required":false,"schema":{"$ref":"#/components/schemas/VideoActivityTypeEnum","description":"Activity type(\"like\"/\"dislike\")","default":"like"},"description":"Activity type(\"like\"/\"dislike\")"}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CommentResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}},"/comments/videos/{video_id}":{"get":{"summary":"Get Comment List","operationId":"get_comment_list_comments_videos__video_id__get","security":[{"HTTPBearer":[]}],"parameters":[{"name":"video_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Video Id"}},{"name":"size","in":"query","required":false,"schema":{"type":"integer","description":"Page size","default":100,"title":"Size"},"description":"Page size"},{"name":"page","in":"query","required":false,"schema":{"type":"integer","description":"Page number","default":1,"title":"Page"},"description":"Page number"}],"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CommentListResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}},"post":{"summary":"Create Comment","operationId":"create_comment_comments_videos__video_id__post","security":[{"HTTPBearer":[]}],"parameters":[{"name":"video_id","in":"path","required":true,"schema":{"type":"string","format":"uuid","title":"Video Id"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CommentCreateRequest"}}}},"responses":{"200":{"description":"Successful Response","content":{"application/json":{"schema":{"$ref":"#/components/schemas/CommentResponse"}}}},"422":{"description":"Validation Error","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HTTPValidationError"}}}}}}}},"components":{"schemas":{"Body_upload_video_video_upload_post":{"properties":{"title":{"type":"string","maxLength":256,"minLength":1,"title":"Title","description":"Video Title"},"description":{"anyOf":[{"type":"string","maxLength":5000},{"type":"null"}],"title":"Description","description":"Video Description"},"file":{"type":"string","format":"binary","title":"File"}},"type":"object","required":["title","file"],"title":"Body_upload_video_video_upload_post"},"CommentCreateRequest":{"properties":{"text":{"type":"string","maxLength":1000,"minLength":1,"title":"Text","description":"Comment Text"}},"type":"object","required":["text"],"title":"CommentCreateRequest"},"CommentListResponse":{"properties":{"items":{"items":{"$ref":"#/components/schemas/CommentResponse"},"type":"array","title":"Items"},"total":{"type":"integer","title":"Total"},"page":{"type":"integer","title":"Page"},"size":{"type":"integer","title":"Size"}},"type":"object","required":["items","total","page","size"],"title":"CommentListResponse"},"CommentResponse":{"properties":{"id":{"type":"string","format":"uuid","title":"Id","description":"Comment ID"},"author_id":{"type":"integer","title":"Author Id","description":"Author ID"},"video_id":{"type":"string","format":"uuid","title":"Video Id","description":"Video ID"},"text":{"type":"string","title":"Text","description":"Comment Text"},"likes_count":{"type":"integer","title":"Likes Count","description":"Comment Likes Count"},"dislikes_count":{"type":"integer","title":"Dislikes Count","description":"Comment Dislikes Count"},"created_at":{"type":"string","format":"date-time","title":"Created At","description":"Comment Creation Date"},"viewer_activity":{"anyOf":[{"$ref":"#/components/schemas/VideoActivityTypeEnum"},{"type":"null"}],"description":"User Activity Type"}},"type":"object","required":["id","author_id","video_id","text","likes_count","dislikes_count","created_at"],"title":"CommentResponse"},"GetTimecodeResponse":{"properties":{"timecode":{"type":"integer","title":"Timecode","description":"Timecode where user stop video in seconds"}},"type":"object","required":["timecode"],"title":"GetTimecodeResponse"},"HTTPValidationError":{"properties":{"detail":{"items":{"$ref":"#/components/schemas/ValidationError"},"type":"array","title":"Detail"}},"type":"object","title":"HTTPValidationError"},"ValidationError":{"properties":{"loc":{"items":{"anyOf":[{"type":"string"},{"type":"integer"}]},"type":"array","title":"Location"},"msg":{"type":"string","title":"Message"},"type":{"type":"string","title":"Error Type"}},"type":"object","required":["loc","msg","type"],"title":"ValidationError"},"VideoActivityTypeEnum":{"type":"string","enum":["like","dislike","share"],"title":"VideoActivityTypeEnum"},"VideoListResponse":{"properties":{"items":{"items":{"$ref":"#/components/schemas/VideoResponse"},"type":"array","title":"Items"},"total":{"type":"integer","title":"Total"},"page":{"type":"integer","title":"Page"},"size":{"type":"integer","title":"Size"}},"type":"object","required":["items","total","page","size"],"title":"VideoListResponse"},"VideoResponse":{"properties":{"id":{"type":"string","format":"uuid","title":"Id","description":"Video ID (UUID)"},"status":{"$ref":"#/components/schemas/VideoStatusEnum","description":"Video Upload Status"},"author_id":{"type":"integer","title":"Author Id","description":"Author ID"},"views_count":{"type":"integer","title":"Views Count","description":"Number of views"},"likes_count":{"type":"integer","title":"Likes Count","description":"Number of likes"},"shares_count":{"type":"integer","title":"Shares Count","description":"Number of shared videos"},"dislikes_count":{"type":"integer","title":"Dislikes Count","description":"Number of dislikes"},"title":{"type":"string","title":"Title","description":"Video Title"},"description":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Description","description":"Video Description"},"duration_seconds":{"type":"integer","title":"Duration Seconds","description":"Video Duration in seconds"},"comments_count":{"type":"integer","title":"Comments Count","description":"Number of comments"},"created_at":{"type":"string","format":"date-time","title":"Created At","description":"Video Creation Date"},"updated_at":{"type":"string","format":"date-time","title":"Updated At","description":"Video Update Date"},"viewer_activity":{"anyOf":[{"$ref":"#/components/schemas/VideoActivityTypeEnum"},{"type":"null"}],"description":"Activity current user on this video"},"master_video_url":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Master Video Url","description":"Master video URL","readOnly":true},"thumbnail_url":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Thumbnail Url","description":"Video thumbnail URL","readOnly":true}},"type":"object","required":["id","status","author_id","views_count","likes_count","shares_count","dislikes_count","title","duration_seconds","comments_count","created_at","updated_at","master_video_url","thumbnail_url"],"title":"VideoResponse","example":{"author_id":42,"comment_count":45,"created_at":"2026-07-19T12:00:00Z","description":"Пошаговый туториал с секретами от шефа.","dislikes_count":2,"duration":342,"id":"c1a9f8b4-5555-4444-8888-9999abcdef12","likes_count":120,"master_video_url":"http://localhost:9000/videos-bucket/c1a9f8b4.../master.m3u8","shares_count":15,"status":"ready","thumbnail_url":"http://localhost:9000/videos-bucket/c1a9f8b4.../thumbnail.jpg","title":"Как приготовить идеальную пасту","updated_at":"2026-07-19T12:05:23Z","viewer_activity":"LIKE","views_count":1420}},"VideoStatusEnum":{"type":"string","enum":["pending","processing","ready","failed"],"title":"VideoStatusEnum"},"VideoUploadInitResponse":{"properties":{"video_id":{"type":"string","format":"uuid","title":"Video Id","description":"Video ID for check status"}},"type":"object","required":["video_id"],"title":"VideoUploadInitResponse"}},"securitySchemes":{"HTTPBearer":{"type":"http","scheme":"bearer"}}}}
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Video Service",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/video/upload": {
+      "post": {
+        "summary": "Upload Video",
+        "operationId": "upload_video_video_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_video_video_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoUploadInitResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/video/storage/{video_id}": {
+      "get": {
+        "summary": "Get Video By Id",
+        "operationId": "get_video_by_id_video_storage__video_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "video_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Video Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Video",
+        "operationId": "delete_video_video_storage__video_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "video_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Video Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/feed": {
+      "get": {
+        "summary": "Get Feed",
+        "operationId": "get_feed_video_feed_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page size",
+              "default": 10,
+              "title": "Size"
+            },
+            "description": "Page size"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/{video_id}": {
+      "post": {
+        "summary": "Set Video Activity",
+        "operationId": "set_video_activity_video__video_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "video_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Video Id"
+            }
+          },
+          {
+            "name": "activity_type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/VideoActivityTypeEnum",
+              "description": "Activity type (\"like\", \"dislike\", \"share\")"
+            },
+            "description": "Activity type (\"like\", \"dislike\", \"share\")"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/video/{video_id}/timecode": {
+      "post": {
+        "summary": "Set Video Timecode",
+        "operationId": "set_video_timecode_video__video_id__timecode_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "video_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Video Id"
+            }
+          },
+          {
+            "name": "timecode_sec",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Timecode seconds",
+              "default": 1,
+              "title": "Timecode Sec"
+            },
+            "description": "Timecode seconds"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get Video Timecode",
+        "operationId": "get_video_timecode_video__video_id__timecode_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "video_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Video Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTimecodeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/comments/{comment_id}": {
+      "get": {
+        "summary": "Get Comment By Id",
+        "operationId": "get_comment_by_id_comments__comment_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "comment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Comment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Set Comment Activity",
+        "operationId": "set_comment_activity_comments__comment_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "comment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Comment Id"
+            }
+          },
+          {
+            "name": "activity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/VideoActivityTypeEnum",
+              "description": "Activity type(\"like\"/\"dislike\")",
+              "default": "like"
+            },
+            "description": "Activity type(\"like\"/\"dislike\")"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/comments/videos/{video_id}": {
+      "get": {
+        "summary": "Get Comment List",
+        "operationId": "get_comment_list_comments_videos__video_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "video_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Video Id"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Page size",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Page size"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Page number",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Comment",
+        "operationId": "create_comment_comments_videos__video_id__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "video_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Video Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/{user_id}/videos": {
+      "get": {
+        "summary": "Get User Videos",
+        "operationId": "get_user_videos_profile__user_id__videos_get",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Page number",
+              "default": 0,
+              "title": "Page"
+            },
+            "description": "Page number"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page size",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Page size"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VideoListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_upload_video_video_upload_post": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Title",
+            "description": "Video Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Video Description"
+          },
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "file"
+        ],
+        "title": "Body_upload_video_video_upload_post"
+      },
+      "CommentCreateRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Text",
+            "description": "Comment Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "CommentCreateRequest"
+      },
+      "CommentListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CommentResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "title": "CommentListResponse"
+      },
+      "CommentResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Comment ID"
+          },
+          "author_id": {
+            "type": "integer",
+            "title": "Author Id",
+            "description": "Author ID"
+          },
+          "video_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Video Id",
+            "description": "Video ID"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "Comment Text"
+          },
+          "likes_count": {
+            "type": "integer",
+            "title": "Likes Count",
+            "description": "Comment Likes Count"
+          },
+          "dislikes_count": {
+            "type": "integer",
+            "title": "Dislikes Count",
+            "description": "Comment Dislikes Count"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Comment Creation Date"
+          },
+          "viewer_activity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VideoActivityTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "User Activity Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "author_id",
+          "video_id",
+          "text",
+          "likes_count",
+          "dislikes_count",
+          "created_at"
+        ],
+        "title": "CommentResponse"
+      },
+      "GetTimecodeResponse": {
+        "properties": {
+          "timecode": {
+            "type": "integer",
+            "title": "Timecode",
+            "description": "Timecode where user stop video in seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timecode"
+        ],
+        "title": "GetTimecodeResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VideoActivityTypeEnum": {
+        "type": "string",
+        "enum": [
+          "like",
+          "dislike",
+          "share"
+        ],
+        "title": "VideoActivityTypeEnum"
+      },
+      "VideoListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/VideoResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "size"
+        ],
+        "title": "VideoListResponse"
+      },
+      "VideoResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Video ID (UUID)"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VideoStatusEnum",
+            "description": "Video Upload Status"
+          },
+          "author_id": {
+            "type": "integer",
+            "title": "Author Id",
+            "description": "Author ID"
+          },
+          "views_count": {
+            "type": "integer",
+            "title": "Views Count",
+            "description": "Number of views"
+          },
+          "likes_count": {
+            "type": "integer",
+            "title": "Likes Count",
+            "description": "Number of likes"
+          },
+          "shares_count": {
+            "type": "integer",
+            "title": "Shares Count",
+            "description": "Number of shared videos"
+          },
+          "dislikes_count": {
+            "type": "integer",
+            "title": "Dislikes Count",
+            "description": "Number of dislikes"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Video Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Video Description"
+          },
+          "duration_seconds": {
+            "type": "integer",
+            "title": "Duration Seconds",
+            "description": "Video Duration in seconds"
+          },
+          "comments_count": {
+            "type": "integer",
+            "title": "Comments Count",
+            "description": "Number of comments"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Video Creation Date"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Video Update Date"
+          },
+          "viewer_activity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VideoActivityTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Activity current user on this video"
+          },
+          "master_video_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Master Video Url",
+            "description": "Master video URL",
+            "readOnly": true
+          },
+          "thumbnail_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail Url",
+            "description": "Video thumbnail URL",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "author_id",
+          "views_count",
+          "likes_count",
+          "shares_count",
+          "dislikes_count",
+          "title",
+          "duration_seconds",
+          "comments_count",
+          "created_at",
+          "updated_at",
+          "master_video_url",
+          "thumbnail_url"
+        ],
+        "title": "VideoResponse",
+        "example": {
+          "author_id": 42,
+          "comment_count": 45,
+          "created_at": "2026-07-19T12:00:00Z",
+          "description": "Пошаговый туториал с секретами от шефа.",
+          "dislikes_count": 2,
+          "duration": 342,
+          "id": "c1a9f8b4-5555-4444-8888-9999abcdef12",
+          "likes_count": 120,
+          "master_video_url": "http://localhost:9000/videos-bucket/c1a9f8b4.../master.m3u8",
+          "shares_count": 15,
+          "status": "ready",
+          "thumbnail_url": "http://localhost:9000/videos-bucket/c1a9f8b4.../thumbnail.jpg",
+          "title": "Как приготовить идеальную пасту",
+          "updated_at": "2026-07-19T12:05:23Z",
+          "viewer_activity": "LIKE",
+          "views_count": 1420
+        }
+      },
+      "VideoStatusEnum": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "processing",
+          "ready",
+          "failed"
+        ],
+        "title": "VideoStatusEnum"
+      },
+      "VideoUploadInitResponse": {
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Video Id",
+            "description": "Video ID for check status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "video_id"
+        ],
+        "title": "VideoUploadInitResponse"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

@@ -38,7 +38,7 @@ async def get_comment_by_id(
         likes_count=comment.likes_count,
         dislikes_count=comment.dislikes_count,
         created_at=comment.created_at,
-        user_activity=user_comment_activity.activity_type
+        viewer_activity=user_comment_activity.activity_type if user_comment_activity else None
     )
 
 @comments_router.get("/videos/{video_id}", response_model=CommentListResponse)
@@ -85,7 +85,7 @@ async def set_comment_activity(
         likes_count=comment.likes_count,
         dislikes_count=comment.dislikes_count,
         created_at=comment.created_at,
-        viewer_activity=user_comment_activity.activity_type if set_result != None else None
+        viewer_activity=user_comment_activity.activity_type if user_comment_activity else None
     )
 
 @comments_router.post("/videos/{video_id}", response_model=CommentResponse)
@@ -97,4 +97,6 @@ async def create_comment(
 ):
     user_id = current_user
     new_comment = await comments_repo.create_new_comment(video_id=video_id, text=comment.text, user_id=user_id)
+    if not new_comment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video not found")
     return new_comment

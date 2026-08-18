@@ -7,6 +7,7 @@ from sqlalchemy import select, func
 from app.database.db import get_db
 from app.database.models import Video, VideoView, VideoActivity
 from app.schemas.Enums import VideoStatusEnum, VideoActivityTypeEnum
+from app.helpers.rabbitmq_publisher import publish_channel_metric_event
 
 
 class VideoRepository:
@@ -79,6 +80,7 @@ class VideoRepository:
             await self._session.flush()
             await self._session.refresh(new_view)
         await self._session.commit()
+        await publish_channel_metric_event(owner_id=result.author_id, metric="views", delta=1)
         return True
 
     async def set_video_activity(
@@ -96,6 +98,8 @@ class VideoRepository:
         video: Video = video.scalar_one_or_none()
         if not video:
             return None
+
+        old_likes = video.likes_count
 
         if activity_type == VideoActivityTypeEnum.SHARE:
             video.shares_count += 1
@@ -152,6 +156,9 @@ class VideoRepository:
                     video.dislikes_count += 1
 
         await self._session.commit()
+        likes_delta = video.likes_count - old_likes
+        if likes_delta != 0:
+            await publish_channel_metric_event(owner_id=video.author_id, metric="likes", delta=likes_delta)
         return final_status
 
     async def get_video_activity(self, video_id: UUID, user_id: int) -> Optional[VideoActivityTypeEnum]:
@@ -185,6 +192,7 @@ class VideoRepository:
 
         await self._session.delete(result)
         await self._session.commit()
+        await publish_channel_metric_event(owner_id=result.author_id, metric="videos", delta=-1)
         return True
 
     async def get_video_view_timecode_seconds(self, video_id: UUID, user_id: int) -> Optional[int]:
@@ -217,6 +225,34 @@ class VideoRepository:
         await self._session.commit()
         await self._session.refresh(result)
         return result.view_end_timecode_seconds
+
+    async def get_all_video_by_user_id(self, user_id: int, page: int = 0, size: int = 100) -> tuple[Sequence[Video], int]:
+        offset = page * size
+        query = (
+            select(Video)
+            .where(
+                Video.author_id == user_id,
+                Video.status == VideoStatusEnum.READY,
+            )
+            .order_by(Video.created_at.desc())
+            .limit(size)
+            .offset(offset)
+        )
+        result = await self._session.execute(query)
+        videos = result.scalars().all()
+
+        count_query = (
+            select(func.count())
+            .select_from(Video)
+            .where(
+                Video.status == VideoStatusEnum.READY,
+                Video.author_id == user_id,
+            )
+        )
+        total_result = await self._session.execute(count_query)
+        total = total_result.scalar_one()
+
+        return videos, total
 
 
 async def get_video_repository(session: AsyncSession = Depends(get_db)) -> VideoRepository:

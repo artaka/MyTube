@@ -1,0 +1,12 @@
+fastapi==0.110.0
+uvicorn==0.28.0
+redis==5.0.2
+aioboto3
+python-multipart==0.0.9
+pydantic_settings==2.14.2
+SQLAlchemy==2.0.51
+asyncpg
+psycopg2-binary
+pillow
+PyJWT
+aio-pika==9.4.1

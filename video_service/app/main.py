@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.endpoints.video import router as video_router
 from app.endpoints.comments import comments_router
+from app.endpoints.profile import profile_router
 from app.database.db import async_engine as engine, Base
 
 @asynccontextmanager
@@ -30,3 +31,4 @@ app.add_middleware(
 
 app.include_router(video_router)
 app.include_router(comments_router)
+app.include_router(profile_router)

@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import VideoPlayer from '../components/video/VideoPlayer';
 import VideoInfo from '../components/video/VideoInfo';
 import CommentSection from '../components/video/CommentSection';
+import VideoCard from '../components/video/VideoCard';
 import { Spinner } from '../components/common/Spinner';
 
 export default function WatchPage() {
@@ -17,10 +18,11 @@ export default function WatchPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timecode, setTimecodeState] = useState(null);
+  const [isTheater, setIsTheater] = useState(false);
 
   const [recommended, setRecommended] = useState([]);
-
-  const videoRef = useRef(null);
+  const [playerEl, setPlayerEl] = useState(null);
+  const initialTimecodeApplied = useRef(false);
   const timecodeTimerRef = useRef(null);
 
   useEffect(() => {
@@ -31,60 +33,72 @@ export default function WatchPage() {
     setLoading(true);
     setVideo(null);
     setTimecodeState(null);
+    initialTimecodeApplied.current = false;
+
     getVideo(videoId, token)
       .then((data) => setVideo(data))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [videoId, token, navigate]);
 
+  // Load saved timecode from API
   useEffect(() => {
     if (!videoId || !token) return;
     getTimecode(videoId, token)
       .then((data) => {
-        if (data && data.timecode_sec > 0) {
-          setTimecodeState(data.timecode_sec);
+        if (data && data.timecode > 0) {
+          setTimecodeState(data.timecode);
         }
       })
       .catch(() => {});
   }, [videoId, token]);
 
+  // Seek to initial timecode once player is ready
   useEffect(() => {
-    return () => {
-      if (timecodeTimerRef.current) {
-        clearInterval(timecodeTimerRef.current);
-      }
-    };
-  }, []);
-
-  const handleTimecodeReady = useCallback((videoEl) => {
-    videoRef.current = videoEl;
-    if (timecode && videoEl) {
-      videoEl.currentTime = timecode;
+    if (!playerEl || timecode === null || timecode <= 0 || initialTimecodeApplied.current) {
+      return;
     }
-  }, [timecode]);
 
+    const seekToTimecode = () => {
+      if (initialTimecodeApplied.current) return;
+      playerEl.currentTime = timecode;
+      initialTimecodeApplied.current = true;
+    };
+
+    if (playerEl.readyState >= 1) {
+      seekToTimecode();
+    } else {
+      playerEl.addEventListener('loadedmetadata', seekToTimecode);
+      playerEl.addEventListener('canplay', seekToTimecode);
+      return () => {
+        playerEl.removeEventListener('loadedmetadata', seekToTimecode);
+        playerEl.removeEventListener('canplay', seekToTimecode);
+      };
+    }
+  }, [timecode, playerEl]);
+
+  // Periodic timecode saving every 5s
   useEffect(() => {
-    if (!videoId || !token || !videoRef.current) return;
+    if (!videoId || !token || !playerEl) return;
 
     if (timecodeTimerRef.current) clearInterval(timecodeTimerRef.current);
 
     timecodeTimerRef.current = setInterval(() => {
-      const el = videoRef.current;
-      if (el && el.readyState >= 2 && !el.paused) {
-        setTimecode(videoId, Math.floor(el.currentTime), token).catch(() => {});
+      if (playerEl.readyState >= 1 && !playerEl.paused) {
+        setTimecode(videoId, Math.floor(playerEl.currentTime), token).catch(() => {});
       }
-    }, 15000);
+    }, 5000);
 
     return () => {
       if (timecodeTimerRef.current) clearInterval(timecodeTimerRef.current);
     };
-  }, [videoId, token]);
+  }, [videoId, token, playerEl]);
 
+  // Save timecode on page leave / unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      const el = videoRef.current;
-      if (el && videoId && token) {
-        const sec = Math.floor(el.currentTime);
+      if (playerEl && videoId && token) {
+        const sec = Math.floor(playerEl.currentTime);
         if (sec > 0) {
           navigator.sendBeacon?.(
             `/video/${videoId}/timecode?timecode_sec=${sec}`,
@@ -96,13 +110,18 @@ export default function WatchPage() {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [videoId, token]);
+  }, [videoId, token, playerEl]);
 
+  // Load recommended feed
   useEffect(() => {
-    getFeed(1, 10).then((data) => {
+    getFeed(1, 15).then((data) => {
       setRecommended((data.items || []).filter((v) => v.id !== videoId));
     }).catch(() => {});
   }, [videoId]);
+
+  const handlePlayerReady = useCallback((videoEl) => {
+    setPlayerEl(videoEl);
+  }, []);
 
   const handleActivity = async (type) => {
     if (!token || !video) return;
@@ -112,12 +131,39 @@ export default function WatchPage() {
     } catch {}
   };
 
+  // Click on a timecode string like "02:15"
+  const handleSeekTimecode = (timeStr) => {
+    if (!playerEl) return;
+    const parts = timeStr.split(':').map(Number);
+    let seconds = 0;
+    if (parts.length === 2) {
+      seconds = parts[0] * 60 + parts[1];
+    } else if (parts.length === 3) {
+      seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    playerEl.currentTime = seconds;
+    if (playerEl.paused) playerEl.play();
+  };
+
   if (loading) return <Spinner />;
 
   if (error) {
     return (
-      <div style={{ padding: 32, textAlign: 'center', color: '#cc0000' }}>
-        Ошибка: {error}
+      <div style={{ padding: 48, textAlign: 'center', color: '#cc0000' }}>
+        <h2>Ошибка: {error}</h2>
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            marginTop: 16,
+            background: 'var(--yt-chip-bg-active)',
+            color: 'var(--yt-chip-text-active)',
+            padding: '10px 20px',
+            borderRadius: 20,
+            cursor: 'pointer',
+          }}
+        >
+          На главную
+        </button>
       </div>
     );
   }
@@ -125,18 +171,34 @@ export default function WatchPage() {
   if (!video) return null;
 
   return (
-    <div className="watch-page">
+    <div className={`watch-page ${isTheater ? 'watch-page--theater' : ''}`} style={{ maxWidth: 1440, margin: '0 auto', padding: '16px' }}>
       <div className="watch-page__main">
-        <VideoPlayer src={video.master_video_url} status={video.status} onReady={handleTimecodeReady} />
-        <VideoInfo video={video} onActivity={handleActivity} />
-        <CommentSection videoId={video.id} />
+        <VideoPlayer
+          src={video.master_video_url}
+          status={video.status}
+          onReady={handlePlayerReady}
+          isTheater={isTheater}
+          onToggleTheater={() => setIsTheater((prev) => !prev)}
+        />
+        <VideoInfo
+          video={video}
+          onActivity={handleActivity}
+          onTimecodeClick={handleSeekTimecode}
+        />
+        <CommentSection
+          videoId={video.id}
+          onTimecodeClick={handleSeekTimecode}
+        />
       </div>
 
       <div className="watch-page__sidebar">
+        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, paddingLeft: 4 }}>
+          Рекомендации
+        </h3>
         {recommended.map((v) => (
           <div
             key={v.id}
-            style={{ display: 'flex', gap: 8, marginBottom: 8, cursor: 'pointer' }}
+            style={{ display: 'flex', gap: 10, marginBottom: 12, cursor: 'pointer' }}
             onClick={() => navigate(`/watch?v=${v.id}`)}
           >
             <div style={{
@@ -146,6 +208,7 @@ export default function WatchPage() {
               overflow: 'hidden',
               flexShrink: 0,
               background: 'var(--yt-bg-secondary)',
+              position: 'relative',
             }}>
               {v.thumbnail_url ? (
                 <img src={v.thumbnail_url} alt={v.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
@@ -175,6 +238,7 @@ export default function WatchPage() {
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 marginBottom: 4,
+                color: 'var(--yt-text)',
               }}>
                 {v.title}
               </div>
